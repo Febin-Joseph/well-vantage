@@ -43,20 +43,20 @@ router.get("/google", passport.authenticate("google", { scope: ["profile", "emai
  *         description: State parameter for CSRF protection
  *     responses:
  *       302:
- *         description: Successful authentication - redirects to dashboard
+ *         description: Redirects to dashboard on success or login page on failure
  *         headers:
  *           Set-Cookie:
- *             description: JWT tokens set as cookies
+ *             description: JWT tokens set as cookies (on success)
  *             schema:
  *               type: string
  *               example: accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure; SameSite=Strict
  *           Location:
- *             description: Redirect URL to dashboard
+ *             description: Redirect URL to dashboard (success) or login page (failure)
  *             schema:
  *               type: string
  *               example: https://well-vantage.vercel.app/dashboard
- *       302:
- *         description: Authentication failed - redirects to login page
+ *       400:
+ *         description: Authentication failed - redirects to login page with error
  *         headers:
  *           Location:
  *             description: Redirect URL to login with error
