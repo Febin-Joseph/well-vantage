@@ -38,7 +38,7 @@ const FuelPage = () => {
   const { data: meals = [] } = useQuery({
     queryKey: ["meals", weekStart.toISOString().split("T")[0], weekEnd.toISOString().split("T")[0]],
     queryFn: () => mealService.getMeals(weekStart.toISOString().split("T")[0], weekEnd.toISOString().split("T")[0]),
-    refetchInterval: 30000,
+    refetchInterval: 5 * 60 * 1000,
   })
 
   const analyzeFoodMutation = useMutation({

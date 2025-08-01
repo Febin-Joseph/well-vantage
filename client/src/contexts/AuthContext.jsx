@@ -19,17 +19,21 @@ export const AuthProvider = ({ children }) => {
     checkAuthStatus()
     
     const interval = setInterval(() => {
-      if (user) {
-        checkAuthStatus()
-      }
+      checkAuthStatus()
     }, 5 * 60 * 1000)
     
     return () => clearInterval(interval)
-  }, [user])
+  }, [])
 
   const checkAuthStatus = async () => {
     try {
-      const userData = await authService.getCurrentUser()
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Auth check timeout')), 10000)
+      )
+      
+      const userDataPromise = authService.getCurrentUser()
+      const userData = await Promise.race([userDataPromise, timeoutPromise])
+      
       setUser(userData)
     } catch (error) {
       console.error('Auth check failed:', error)

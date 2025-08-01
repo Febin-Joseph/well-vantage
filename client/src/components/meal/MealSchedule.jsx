@@ -27,7 +27,7 @@ const MealSchedule = ({
   const { data: meals = [], isLoading, error } = useQuery({
     queryKey: ["meals", startDate, endDate],
     queryFn: () => mealService.getMeals(startDate, endDate),
-    refetchInterval: 30000,
+    refetchInterval: 5 * 60 * 1000,
   })
 
   const groupMealsByDate = (meals) => {

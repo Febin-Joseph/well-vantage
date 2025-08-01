@@ -7,21 +7,46 @@ const api = axios.create({
   withCredentials: true,
 })
 
+let isRefreshing = false
+let refreshAttempts = 0
+const MAX_REFRESH_ATTEMPTS = 3
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && 
+        !originalRequest._retry && 
+        !originalRequest.url?.includes('/auth/refresh') &&
+        refreshAttempts < MAX_REFRESH_ATTEMPTS) {
+      
       originalRequest._retry = true
+      refreshAttempts++
 
-      try {
-        await api.post("/auth/refresh")
-        return api(originalRequest)
-      } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError)
-        window.location.href = "/auth"
-        return Promise.reject(refreshError)
+      if (!isRefreshing) {
+        isRefreshing = true
+        
+        try {
+          await api.post("/auth/refresh")
+          refreshAttempts = 0
+          isRefreshing = false
+          return api(originalRequest)
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError)
+          isRefreshing = false
+          
+          if (refreshAttempts >= MAX_REFRESH_ATTEMPTS) {
+            window.location.href = "/auth"
+          }
+          return Promise.reject(refreshError)
+        }
+      } else {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(api(originalRequest))
+          }, 1000)
+        })
       }
     }
 
@@ -59,13 +84,6 @@ export const authService = {
   },
 
   startTokenRefresh: () => {
-    setInterval(async () => {
-      try {
-        await api.post("/auth/refresh")
-        console.log('Token refreshed successfully')
-      } catch (error) {
-        console.error('Background token refresh failed:', error)
-      }
-    }, 60 * 60 * 1000)
+    console.log('Automatic token refresh disabled - using interceptor-based refresh')
   },
 };

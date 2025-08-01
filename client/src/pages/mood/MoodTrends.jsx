@@ -31,10 +31,12 @@ const MoodTrends = () => {
   const [viewMode, setViewMode] = useState("Week")
   const [displayCount, setDisplayCount] = useState(5)
 
-  const { data: moodEntries = [], isLoading } = useQuery({
+  const { data: moodEntries = [], isLoading, error } = useQuery({
     queryKey: ["moodEntries"],
     queryFn: () => moodService.getMoodEntries(),
-    refetchInterval: 30000,
+    refetchInterval: 5 * 60 * 1000,
+    retry: 2,
+    retryDelay: 1000,
   })
 
   const addMoodMutation = useMutation({
@@ -99,9 +101,22 @@ const MoodTrends = () => {
   const hasMoreEntries = sortedMoodEntries.length > displayCount
 
   if (isLoading) {
+    return <LoadingSpinner type="skeleton" />
+  }
+
+  if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-green-500"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-lg font-semibold mb-2">Failed to load mood data</div>
+          <div className="text-gray-600 mb-4">Please try refreshing the page</div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+          >
+            Refresh Page
+          </button>
+        </div>
       </div>
     )
   }

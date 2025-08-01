@@ -5,11 +5,18 @@ import LoadingSpinner from "./LoadingSpinner"
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
 
+  console.log('ProtectedRoute - loading:', loading, 'user:', user)
+
   if (loading) {
-    return <LoadingSpinner />
+    return <LoadingSpinner type="skeleton" />
   }
 
-  return user ? children : <Navigate to="/auth" />
+  if (!user) {
+    console.log('ProtectedRoute - redirecting to auth, no user found')
+    return <Navigate to="/auth" />
+  }
+
+  return children
 }
 
 export default ProtectedRoute;
