@@ -19,6 +19,7 @@ import Navigation from "../../components/layout/Navigation"
 import MoodModal from "../../components/mood/MoodModal"
 import { moodService } from "../../services/moodService"
 import { useMoodChart } from "../../hooks/useMoodChart"
+import LoadingSpinner from "../../components/common/LoadingSpinner"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
