@@ -79,7 +79,6 @@ app.use(
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
-      domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
     },
   }),
 )
@@ -131,6 +130,30 @@ app.get("/api/test-cookies", (req, res) => {
     cookies: req.cookies,
     headers: req.headers.cookie ? 'present' : 'missing'
   })
+})
+
+// Test endpoint to set cookies and redirect
+app.get("/api/test-cookie-set", (req, res) => {
+  console.log('=== TEST COOKIE SET ===')
+  
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    path: '/',
+    maxAge: 4 * 60 * 60 * 1000 // 4 hours
+  }
+  
+  console.log('Setting test cookies with options:', cookieOptions)
+  
+  res.cookie('testAccessToken', 'test-access-token-value', cookieOptions)
+  res.cookie('testRefreshToken', 'test-refresh-token-value', {
+    ...cookieOptions,
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+  })
+  
+  console.log('Test cookies set, redirecting to client')
+  res.redirect('https://well-vantage.vercel.app/auth?test=success')
 })
 
 app.use(notFound)

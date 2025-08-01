@@ -66,32 +66,49 @@ router.get("/google", passport.authenticate("google", { scope: ["profile", "emai
  */
 router.get("/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), async (req, res) => {
   try {
-    console.log('Google OAuth callback - user:', req.user ? 'exists' : 'null')
+    console.log('=== GOOGLE OAUTH CALLBACK START ===')
+    console.log('User from passport:', req.user ? req.user.email : 'null')
+    console.log('Session ID:', req.sessionID)
+    console.log('All cookies received:', req.cookies)
     
     if (!req.user) {
-      console.log('No user found in callback, redirecting to auth with error')
+      console.log('❌ No user found in callback, redirecting to auth with error')
       return res.redirect(process.env.CLIENT_URL || "https://well-vantage.vercel.app/auth?error=authentication_failed")
     }
 
     const { accessToken, refreshToken } = generateTokens(req.user)
-    console.log('Generated tokens for user:', req.user.email)
+    console.log('✅ Generated tokens for user:', req.user.email)
 
     const cookieOptions = getCookieOptions(false)
     const refreshCookieOptions = getCookieOptions(true)
     
-    console.log('Setting cookies with options:', {
+    console.log('🔧 Cookie options for access token:', {
+      httpOnly: cookieOptions.httpOnly,
       secure: cookieOptions.secure,
       sameSite: cookieOptions.sameSite,
-      domain: cookieOptions.domain
+      path: cookieOptions.path,
+      maxAge: cookieOptions.maxAge
+    })
+    
+    console.log('🔧 Cookie options for refresh token:', {
+      httpOnly: refreshCookieOptions.httpOnly,
+      secure: refreshCookieOptions.secure,
+      sameSite: refreshCookieOptions.sameSite,
+      path: refreshCookieOptions.path,
+      maxAge: refreshCookieOptions.maxAge
     })
 
+    // Set cookies
     res.cookie('accessToken', accessToken, cookieOptions)
     res.cookie('refreshToken', refreshToken, refreshCookieOptions)
+    
+    console.log('🍪 Cookies set successfully')
+    console.log('📤 Redirecting to:', process.env.CLIENT_URL || "https://well-vantage.vercel.app/dashboard")
+    console.log('=== GOOGLE OAUTH CALLBACK END ===')
 
-    console.log('Redirecting to dashboard')
     res.redirect(process.env.CLIENT_URL || "https://well-vantage.vercel.app/dashboard")
   } catch (error) {
-    console.error('Auth callback error:', error)
+    console.error('❌ Auth callback error:', error)
     res.redirect(process.env.CLIENT_URL || "https://well-vantage.vercel.app/auth?error=token_generation_failed")
   }
 })

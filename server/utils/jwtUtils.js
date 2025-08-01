@@ -53,7 +53,6 @@ const getCookieOptions = (isRefreshToken = false) => {
     secure: isProduction,
     sameSite: isProduction ? 'none' : 'lax',
     path: '/',
-    domain: isProduction ? '.onrender.com' : undefined,
   }
 
   if (isRefreshToken) {

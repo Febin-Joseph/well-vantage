@@ -2,17 +2,25 @@ const { verifyAccessToken, verifyRefreshToken, generateTokens, getCookieOptions 
 const User = require('../models/User')
 
 const authenticateToken = async (req, res, next) => {
+  console.log('=== JWT AUTH START ===')
+  console.log('Request URL:', req.url)
+  console.log('Request method:', req.method)
+  console.log('All cookies received:', req.cookies)
+  console.log('Cookie header:', req.headers.cookie)
+  
   const accessToken = req.cookies.accessToken
   const refreshToken = req.cookies.refreshToken
 
-  console.log('JWT Auth - Cookies received:', {
+  console.log('Token status:', {
     hasAccessToken: !!accessToken,
     hasRefreshToken: !!refreshToken,
-    cookies: Object.keys(req.cookies)
+    accessTokenLength: accessToken ? accessToken.length : 0,
+    refreshTokenLength: refreshToken ? refreshToken.length : 0
   })
 
   if (!accessToken && !refreshToken) {
-    console.log('JWT Auth - No tokens provided')
+    console.log('❌ JWT Auth - No tokens provided')
+    console.log('=== JWT AUTH END (NO TOKENS) ===')
     return res.status(401).json({ error: 'No tokens provided' })
   }
 
