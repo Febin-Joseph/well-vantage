@@ -46,17 +46,20 @@ const verifyRefreshToken = (token) => {
 }
 
 const getCookieOptions = (isRefreshToken = false) => {
+  const isProduction = process.env.NODE_ENV === 'production'
+  
   const options = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
     path: '/',
+    domain: isProduction ? '.onrender.com' : undefined,
   }
 
   if (isRefreshToken) {
-    options.maxAge = 30 * 24 * 60 * 60 * 1000
+    options.maxAge = 30 * 24 * 60 * 60 * 1000 // 30 days
   } else {
-    options.maxAge = 4 * 60 * 60 * 1000
+    options.maxAge = 4 * 60 * 60 * 1000 // 4 hours
   }
 
   return options

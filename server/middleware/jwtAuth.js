@@ -5,7 +5,14 @@ const authenticateToken = async (req, res, next) => {
   const accessToken = req.cookies.accessToken
   const refreshToken = req.cookies.refreshToken
 
+  console.log('JWT Auth - Cookies received:', {
+    hasAccessToken: !!accessToken,
+    hasRefreshToken: !!refreshToken,
+    cookies: Object.keys(req.cookies)
+  })
+
   if (!accessToken && !refreshToken) {
+    console.log('JWT Auth - No tokens provided')
     return res.status(401).json({ error: 'No tokens provided' })
   }
 

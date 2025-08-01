@@ -31,12 +31,40 @@ app.use(helmet())
 app.use(compression())
 app.use(morgan("combined"))
 
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "https://well-vantage.vercel.app",
-    credentials: true,
-  }),
-)
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) {
+      console.log('CORS: Allowing request with no origin')
+      return callback(null, true)
+    }
+
+    const allowedOrigins = [
+      'https://well-vantage.vercel.app',
+    ]
+
+    if (process.env.CLIENT_URL) {
+      allowedOrigins.push(process.env.CLIENT_URL)
+    }
+
+    console.log('CORS: Checking origin:', origin)
+    console.log('CORS: Allowed origins:', allowedOrigins)
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log('CORS: Origin allowed')
+      callback(null, true)
+    } else {
+      console.log('CORS: Origin blocked:', origin)
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cookie'],
+  exposedHeaders: ['Set-Cookie']
+}
+
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions))
 
 app.use(express.json({ limit: "10mb" }))
 app.use(express.urlencoded({ extended: true, limit: "10mb" }))
@@ -49,7 +77,9 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
+      domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
     },
   }),
 )
@@ -93,6 +123,14 @@ app.use("/api/chat", chatRoutes)
  */
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() })
+})
+
+app.get("/api/test-cookies", (req, res) => {
+  console.log('Test cookies endpoint - all cookies:', req.cookies)
+  res.json({
+    cookies: req.cookies,
+    headers: req.headers.cookie ? 'present' : 'missing'
+  })
 })
 
 app.use(notFound)

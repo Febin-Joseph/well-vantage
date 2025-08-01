@@ -66,15 +66,29 @@ router.get("/google", passport.authenticate("google", { scope: ["profile", "emai
  */
 router.get("/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), async (req, res) => {
   try {
+    console.log('Google OAuth callback - user:', req.user ? 'exists' : 'null')
+    
     if (!req.user) {
+      console.log('No user found in callback, redirecting to auth with error')
       return res.redirect(process.env.CLIENT_URL || "https://well-vantage.vercel.app/auth?error=authentication_failed")
     }
 
     const { accessToken, refreshToken } = generateTokens(req.user)
+    console.log('Generated tokens for user:', req.user.email)
 
-    res.cookie('accessToken', accessToken, getCookieOptions(false))
-    res.cookie('refreshToken', refreshToken, getCookieOptions(true))
+    const cookieOptions = getCookieOptions(false)
+    const refreshCookieOptions = getCookieOptions(true)
+    
+    console.log('Setting cookies with options:', {
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
+      domain: cookieOptions.domain
+    })
 
+    res.cookie('accessToken', accessToken, cookieOptions)
+    res.cookie('refreshToken', refreshToken, refreshCookieOptions)
+
+    console.log('Redirecting to dashboard')
     res.redirect(process.env.CLIENT_URL || "https://well-vantage.vercel.app/dashboard")
   } catch (error) {
     console.error('Auth callback error:', error)
@@ -116,13 +130,34 @@ router.get("/google/callback", passport.authenticate("google", { failureRedirect
  *             example:
  *               error: "Not authenticated"
  */
-router.get("/user", (req, res) => {
+router.get("/user", async (req, res) => {
   if (req.user) {
     const { password, tokenVersion, ...userData } = req.user.toObject()
-    res.json(userData)
-  } else {
-    res.status(401).json({ error: "Not authenticated" })
+    return res.json(userData)
   }
+
+  const { authenticateToken } = require('../middleware/jwtAuth')
+  
+  try {
+    await new Promise((resolve, reject) => {
+      authenticateToken(req, res, (error) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve()
+        }
+      })
+    })
+    
+    if (req.user) {
+      const { password, tokenVersion, ...userData } = req.user.toObject()
+      return res.json(userData)
+    }
+  } catch (error) {
+    console.error('JWT auth failed:', error)
+  }
+
+  res.status(401).json({ error: "Not authenticated" })
 })
 
 /**
