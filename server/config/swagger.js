@@ -17,13 +17,13 @@ A comprehensive wellness tracking application that helps users monitor their moo
 
 ### Base URL
 - **Development**: http://localhost:5000
-- **Production**: https://your-production-url.com/api
+- **Production**: https://well-vantage-server.onrender.com/api
       `
     },
     servers: [
       {
         url: process.env.NODE_ENV === "production" 
-          ? "https://your-production-url.com/api" 
+          ? "https://well-vantage-server.onrender.com/api" 
           : "http://localhost:5000/api",
         description: process.env.NODE_ENV === "production" ? "Production server" : "Development server",
       },

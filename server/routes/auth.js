@@ -54,7 +54,7 @@ router.get("/google", passport.authenticate("google", { scope: ["profile", "emai
  *             description: Redirect URL to dashboard
  *             schema:
  *               type: string
- *               example: http://localhost:5173/dashboard
+ *               example: https://well-vantage.vercel.app/dashboard
  *       302:
  *         description: Authentication failed - redirects to login page
  *         headers:
@@ -62,12 +62,12 @@ router.get("/google", passport.authenticate("google", { scope: ["profile", "emai
  *             description: Redirect URL to login with error
  *             schema:
  *               type: string
- *               example: http://localhost:5173/auth?error=authentication_failed
+ *               example: https://well-vantage.vercel.app/auth?error=authentication_failed
  */
 router.get("/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), async (req, res) => {
   try {
     if (!req.user) {
-      return res.redirect(process.env.CLIENT_URL || "http://localhost:5173/auth?error=authentication_failed")
+      return res.redirect(process.env.CLIENT_URL || "https://well-vantage.vercel.app/auth?error=authentication_failed")
     }
 
     const { accessToken, refreshToken } = generateTokens(req.user)
@@ -75,10 +75,10 @@ router.get("/google/callback", passport.authenticate("google", { failureRedirect
     res.cookie('accessToken', accessToken, getCookieOptions(false))
     res.cookie('refreshToken', refreshToken, getCookieOptions(true))
 
-    res.redirect(process.env.CLIENT_URL || "http://localhost:5173/dashboard")
+    res.redirect(process.env.CLIENT_URL || "https://well-vantage.vercel.app/dashboard")
   } catch (error) {
     console.error('Auth callback error:', error)
-    res.redirect(process.env.CLIENT_URL || "http://localhost:5173/auth?error=token_generation_failed")
+    res.redirect(process.env.CLIENT_URL || "https://well-vantage.vercel.app/auth?error=token_generation_failed")
   }
 })
 
